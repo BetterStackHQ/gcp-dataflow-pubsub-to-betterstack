@@ -1,0 +1,29 @@
+{
+  "name": "pubsub-to-betterstack",
+  "description": "Dataflow template to stream data from PubSub to Better Stack",
+  "parameters": [
+    {
+      "name": "input_subscription",
+      "label": "Input PubSub subscription",
+      "helpText": "PubSub subscription to read from",
+      "isOptional": false,
+      "regexes": ["^projects/[^/]+/subscriptions/[^/]+$"]
+    },
+    {
+      "name": "better_stack_source_token",
+      "label": "Better Stack Source Token",
+      "helpText": "Your Better Stack source token",
+      "isOptional": false
+    },
+    {
+      "name": "better_stack_ingesting_host",
+      "label": "Better Stack Ingesting Host",
+      "helpText": "The Better Stack ingest host URL",
+      "isOptional": false
+    }
+  ],
+  "image": "gcr.io/PROJECT_ID/pubsub-to-betterstack:latest",
+  "sdkInfo": {
+    "language": "PYTHON"
+  }
+} 

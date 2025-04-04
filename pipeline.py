@@ -41,16 +41,17 @@ def run(argv=None):
         required=True,
         help='Input PubSub subscription to read from'
     )
+    parser.add_argument(
+        '--better_stack_source_token',
+        required=True,
+        help='Better Stack Telemetry source token'
+    )
+    parser.add_argument(
+        '--better_stack_ingesting_host',
+        required=True,
+        help='Better Stack Telemetry source ingesting host'
+    )
     known_args, pipeline_args = parser.parse_known_args(argv)
-
-    # Get Better Stack credentials from environment variables
-    source_token = os.environ.get('BETTER_STACK_SOURCE_TOKEN')
-    ingest_host = os.environ.get('BETTER_STACK_INGESTING_HOST')
-
-    if not source_token or not ingest_host:
-        raise ValueError(
-            "Environment variables BETTER_STACK_SOURCE_TOKEN and BETTER_STACK_INGESTING_HOST must be set"
-        )
 
     pipeline_options = PipelineOptions(
         pipeline_args,
@@ -64,7 +65,10 @@ def run(argv=None):
                 subscription=known_args.input_subscription
             )
             | 'Send to Better Stack' >> beam.ParDo(
-                PubSubToBetterStack(source_token, ingest_host)
+                PubSubToBetterStack(
+                    known_args.better_stack_source_token,
+                    known_args.better_stack_ingesting_host
+                )
             )
         )
 

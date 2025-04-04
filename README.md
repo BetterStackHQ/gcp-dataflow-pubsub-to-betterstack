@@ -20,7 +20,7 @@ The template requires two environment variables:
 - `BETTER_STACK_SOURCE_TOKEN`: Your Better Stack source token
 - `BETTER_STACK_INGESTING_HOST`: The Better Stack ingest host URL
 
-## Building the Template
+## Building and Deploying the Template
 
 1. Clone this repository:
 ```bash
@@ -37,27 +37,40 @@ gcloud projects list
 gcloud config set project PROJECT_ID
 ```
 
-2. Build the Docker image:
+3. Build the Docker image:
 ```bash
 docker build -t gcr.io/$(gcloud config get-value project)/pubsub-to-betterstack .
 ```
 
-3. Push the image to Google Container Registry:
+4. Push the image to Google Container Registry:
 ```bash
 gcloud auth configure-docker
 docker push gcr.io/$(gcloud config get-value project)/pubsub-to-betterstack
 ```
 
-## Deploying the Template
+5. Create a Cloud Storage bucket for the template (if you don't have one):
+```bash
+BUCKET_NAME="dataflow-templates-$(gcloud config get-value project)"
+gsutil mb -l us-central1 gs://${BUCKET_NAME}
+```
 
-You can deploy the template using the Google Cloud Console or the gcloud CLI:
+6. Update the template specification with your project ID:
+```bash
+sed -i "s/PROJECT_ID/$(gcloud config get-value project)/g" pubsub-to-betterstack.json
+```
 
-### Using gcloud CLI
+7. Upload the template specification to Cloud Storage:
+```bash
+gsutil cp pubsub-to-betterstack.json gs://${BUCKET_NAME}/templates/
+```
 
+8. Deploy the template using gcloud CLI:
 ```bash
 gcloud dataflow flex-template run "pubsub-to-betterstack-$(date +%Y%m%d-%H%M%S)" \
-    --template-file-gcs-location=gs://YOUR_BUCKET/templates/pubsub-to-betterstack.json \
-    --parameters input_subscription=projects/YOUR_PROJECT/subscriptions/YOUR_SUBSCRIPTION \
+    --template-file-gcs-location=gs://${BUCKET_NAME}/templates/pubsub-to-betterstack.json \
+    --parameters input_subscription=projects/$(gcloud config get-value project)/subscriptions/YOUR_SUBSCRIPTION \
+    --parameters better_stack_source_token=YOUR_SOURCE_TOKEN \
+    --parameters better_stack_ingesting_host=YOUR_INGESTING_HOST \
     --region=$(gcloud config get-value compute/region) \
     --additional-experiments=use_runner_v2
 ```
@@ -67,13 +80,12 @@ gcloud dataflow flex-template run "pubsub-to-betterstack-$(date +%Y%m%d-%H%M%S)"
 1. Go to the Dataflow section in the Google Cloud Console
 2. Click "Create Job from Template"
 3. Select "Custom Template"
-4. Enter the path to your template in Cloud Storage
+4. Enter the path to your template in Cloud Storage: `gs://${BUCKET_NAME}/templates/pubsub-to-betterstack.json`
 5. Fill in the required parameters:
    - `input_subscription`: Your PubSub subscription to read from
-6. Set the environment variables:
-   - `BETTER_STACK_SOURCE_TOKEN`
-   - `BETTER_STACK_INGESTING_HOST`
-7. Click "Run Job"
+   - `better_stack_source_token`: Your Better Stack source token
+   - `better_stack_ingesting_host`: The Better Stack ingest host URL
+6. Click "Run Job"
 
 ## Message Format
 
