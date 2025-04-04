@@ -45,11 +45,11 @@ def run(argv=None):
 
     # Get Better Stack credentials from environment variables
     source_token = os.environ.get('BETTER_STACK_SOURCE_TOKEN')
-    ingest_host = os.environ.get('BETTER_STACK_INGEST_HOST')
+    ingest_host = os.environ.get('BETTER_STACK_INGESTING_HOST')
 
     if not source_token or not ingest_host:
         raise ValueError(
-            "Environment variables BETTER_STACK_SOURCE_TOKEN and BETTER_STACK_INGEST_HOST must be set"
+            "Environment variables BETTER_STACK_SOURCE_TOKEN and BETTER_STACK_INGESTING_HOST must be set"
         )
 
     pipeline_options = PipelineOptions(

@@ -18,7 +18,7 @@ This template provides a scalable solution for streaming data from Google Cloud 
 The template requires two environment variables:
 
 - `BETTER_STACK_SOURCE_TOKEN`: Your Better Stack source token
-- `BETTER_STACK_INGEST_HOST`: The Better Stack ingest host URL
+- `BETTER_STACK_INGESTING_HOST`: The Better Stack ingest host URL
 
 ## Building the Template
 
@@ -28,14 +28,24 @@ git clone https://github.com/your-org/gcp-dataflow-pubsub-to-telemetry.git
 cd gcp-dataflow-pubsub-to-telemetry
 ```
 
+2. Choose Google Cloud Platform project to use
+```bash
+# See currently selected project
+gcloud config get-value project
+# You can switch to a different project using
+gcloud projects list
+gcloud config set project PROJECT_ID
+```
+
 2. Build the Docker image:
 ```bash
-docker build -t gcr.io/YOUR_PROJECT/pubsub-to-betterstack .
+docker build -t gcr.io/$(gcloud config get-value project)/pubsub-to-betterstack .
 ```
 
 3. Push the image to Google Container Registry:
 ```bash
-docker push gcr.io/YOUR_PROJECT/pubsub-to-betterstack
+gcloud auth configure-docker
+docker push gcr.io/$(gcloud config get-value project)/pubsub-to-betterstack
 ```
 
 ## Deploying the Template
@@ -48,7 +58,7 @@ You can deploy the template using the Google Cloud Console or the gcloud CLI:
 gcloud dataflow flex-template run "pubsub-to-betterstack-$(date +%Y%m%d-%H%M%S)" \
     --template-file-gcs-location=gs://YOUR_BUCKET/templates/pubsub-to-betterstack.json \
     --parameters input_subscription=projects/YOUR_PROJECT/subscriptions/YOUR_SUBSCRIPTION \
-    --region=YOUR_REGION \
+    --region=$(gcloud config get-value compute/region) \
     --additional-experiments=use_runner_v2
 ```
 
@@ -62,7 +72,7 @@ gcloud dataflow flex-template run "pubsub-to-betterstack-$(date +%Y%m%d-%H%M%S)"
    - `input_subscription`: Your PubSub subscription to read from
 6. Set the environment variables:
    - `BETTER_STACK_SOURCE_TOKEN`
-   - `BETTER_STACK_INGEST_HOST`
+   - `BETTER_STACK_INGESTING_HOST`
 7. Click "Run Job"
 
 ## Message Format
