@@ -6,7 +6,7 @@ A Dataflow Flex template that reads messages from Pub/Sub and sends them to Bett
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/your-org/gcp-dataflow-pubsub-to-betterstack.git
+git clone https://github.com/BetterStackHQ/gcp-dataflow-pubsub-to-betterstack.git
 cd gcp-dataflow-pubsub-to-betterstack
 ```
 
