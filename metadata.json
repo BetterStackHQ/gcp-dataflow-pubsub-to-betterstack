@@ -1,39 +1,52 @@
 {
   "name": "pubsub-to-betterstack",
-  "description": "Dataflow template to stream data from Pub/Sub to Better Stack",
+  "description": "A Dataflow template that reads messages from Pub/Sub and sends them to Better Stack Telemetry.",
   "parameters": [
     {
       "name": "input_subscription",
-      "label": "Input Pub/Sub subscription",
-      "helpText": "The name of the Pub/Sub subscription to read from",
-      "isOptional": false,
-      "regexes": ["^projects/[^/]+/subscriptions/[^/]+$"]
+      "label": "Input Pub/Sub Subscription",
+      "helpText": "The name of the Pub/Sub subscription to read from.",
+      "isOptional": false
     },
     {
       "name": "better_stack_source_token",
       "label": "Better Stack Source Token",
-      "helpText": "The source token of your telemetry source in Better Stack",
+      "helpText": "The source token of your telemetry source in Better Stack.",
       "isOptional": false
     },
     {
       "name": "better_stack_ingesting_host",
       "label": "Better Stack Ingesting Host",
-      "helpText": "The ingesting host of your telemetry source in Better Stack",
+      "helpText": "The ingesting host of your telemetry source in Better Stack.",
       "isOptional": false
     },
     {
       "name": "batch_size",
       "label": "Batch Size",
-      "helpText": "Number of messages to batch before sending to Better Stack",
+      "helpText": "Number of messages to batch before sending to Better Stack.",
       "isOptional": true,
       "defaultValue": "100"
     },
     {
       "name": "window_size",
       "label": "Window Size",
-      "helpText": "Window size in seconds for batching messages",
+      "helpText": "Window size in seconds for batching messages.",
       "isOptional": true,
       "defaultValue": "10"
+    },
+    {
+      "name": "max_retries",
+      "label": "Max Retries",
+      "helpText": "Maximum number of retry attempts for failed requests. Uses exponential backoff between retries.",
+      "isOptional": true,
+      "defaultValue": "3"
+    },
+    {
+      "name": "initial_retry_delay",
+      "label": "Initial Retry Delay",
+      "helpText": "Initial delay in seconds between retries. The delay doubles with each retry attempt.",
+      "isOptional": true,
+      "defaultValue": "1"
     }
   ]
 }

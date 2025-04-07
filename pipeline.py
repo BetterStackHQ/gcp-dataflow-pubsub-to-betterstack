@@ -93,41 +93,41 @@ def run(argv=None):
     parser.add_argument(
         '--input_subscription',
         required=True,
-        help='The name of the Pub/Sub subscription to read from'
+        help='The name of the Pub/Sub subscription to read from.'
     )
     parser.add_argument(
         '--better_stack_source_token',
         required=True,
-        help='The source token of your telemetry source in Better Stack'
+        help='The source token of your telemetry source in Better Stack.'
     )
     parser.add_argument(
         '--better_stack_ingesting_host',
         required=True,
-        help='The ingesting host of your telemetry source in Better Stack'
+        help='The ingesting host of your telemetry source in Better Stack.'
     )
     parser.add_argument(
         '--batch_size',
         default=100,
         type=int,
-        help='Number of messages to batch before sending to Better Stack'
+        help='Number of messages to batch before sending to Better Stack.'
     )
     parser.add_argument(
         '--window_size',
         default=10,
         type=int,
-        help='Window size in seconds for batching messages'
+        help='Window size in seconds for batching messages.'
     )
     parser.add_argument(
         '--max_retries',
         default=3,
         type=int,
-        help='Maximum number of retry attempts for failed requests'
+        help='Maximum number of retry attempts for failed requests. Uses exponential backoff between retries.'
     )
     parser.add_argument(
         '--initial_retry_delay',
         default=1,
         type=int,
-        help='Initial delay between retries in seconds'
+        help='Initial delay in seconds between retries. The delay doubles with each retry attempt.'
     )
     known_args, pipeline_args = parser.parse_known_args(argv)
 
