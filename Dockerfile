@@ -4,6 +4,11 @@ ARG WORKDIR=/dataflow/template
 RUN mkdir -p ${WORKDIR}
 WORKDIR ${WORKDIR}
 
+# Install dependencies
+RUN pip install -U pip setuptools wheel
+RUN pip install apache-beam[gcp]>=2.50.0 requests>=2.31.0 typing-extensions>=4.5.0
+
+# Copy template files
 COPY requirements.txt .
 COPY setup.py .
 COPY pipeline.py .
