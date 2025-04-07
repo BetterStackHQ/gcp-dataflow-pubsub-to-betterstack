@@ -5,6 +5,7 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.transforms.window import FixedWindows
 import requests
+import gzip
 from typing import Dict, Any, List
 from datetime import timedelta
 
@@ -15,7 +16,8 @@ class PubSubToBetterStack(beam.DoFn):
         self.batch_size = batch_size
         self.headers = {
             'Authorization': f'Bearer {source_token}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Content-Encoding': 'gzip'
         }
         self.batch = []
 
@@ -45,11 +47,15 @@ class PubSubToBetterStack(beam.DoFn):
 
     def _send_batch(self):
         try:
-            # Send batch to Better Stack
+            # Convert batch to JSON and compress with gzip
+            json_data = json.dumps(self.batch)
+            compressed_data = gzip.compress(json_data.encode('utf-8'))
+            
+            # Send compressed batch to Better Stack
             response = requests.post(
                 self.ingesting_url,
                 headers=self.headers,
-                json=self.batch
+                data=compressed_data
             )
             
             if response.status_code != 202:
