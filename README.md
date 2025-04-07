@@ -7,7 +7,7 @@ A Dataflow Flex template that reads messages from Pub/Sub and sends them to Bett
 1. Go to Google Cloud Console -> Dataflow -> [Create job from template](https://console.cloud.google.com/dataflow/createjob)
 2. Choose the name and region for the Dataflow job
 3. Select **Custom Template**
-4. As Template path, use `better-stack-gcs-dataflow/pubsub-to-betterstack.json`
+4. As Template path, use `betterstack/pubsub-to-betterstack.json`
 5. Set parameters based on your Google Cloud Pub/Sub Subscription and [Better Stack Telemetry source](https://telemetry.betterstack.com/team/260195/sources)
 6. Click **Run job**
 
@@ -23,7 +23,7 @@ INGESTING_HOST=<your-better-stack-ingesting-host>
 2. Create a Dataflow job using the template
 ```bash
 gcloud dataflow flex-template run "pubsub-to-betterstack-$(date +%Y%m%d-%H%M%S)" \
-    --template-file-gcs-location=gs://better-stack-gcs-dataflow/pubsub-to-betterstack.json \
+    --template-file-gcs-location=gs://betterstack/pubsub-to-betterstack.json \
     --parameters input_subscription=$INPUT_SUBSCRIPTION \
     --parameters better_stack_source_token=$SOURCE_TOKEN \
     --parameters better_stack_ingesting_host=$INGESTING_HOST \
@@ -40,6 +40,21 @@ The template supports the following optional parameters:
 - `initial_retry_delay` - Initial delay between retries in seconds. Default: 1
 
 You can include these parameters in your Dataflow job by adding them to the run command, e.g. `gcloud dataflow flex-template run ... --parameters window_size=30`.
+
+## Releasing new version
+
+After making changes, rebuild the Docker image and the Dataflow template:
+
+```bash
+docker build --tag betterstack/gcp-dataflow-pubsub-to-betterstack .
+docker push betterstack/gcp-dataflow-pubsub-to-betterstack
+gcloud dataflow flex-template build gs://betterstack/pubsub-to-betterstack.json \
+    --image "docker.io/betterstack/gcp-dataflow-pubsub-to-betterstack" \
+    --sdk-language "PYTHON" \
+    --metadata-file "metadata.json"
+```
+
+Requires access to `betterstack` Docker Hub repository, and `betterstack` Google Cloud Bucket.
 
 ## License
 
