@@ -6,6 +6,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.transforms.window import FixedWindows
 import requests
 import gzip
+import time
 from typing import Dict, Any, List
 from datetime import timedelta
 
@@ -20,6 +21,8 @@ class PubSubToBetterStack(beam.DoFn):
             'Content-Encoding': 'gzip'
         }
         self.batch = []
+        self.max_retries = 3
+        self.initial_retry_delay = 1  # seconds
 
     def process(self, element: bytes) -> None:
         try:
@@ -34,7 +37,7 @@ class PubSubToBetterStack(beam.DoFn):
             
             # If we've reached the batch size, send the batch
             if len(self.batch) >= self.batch_size:
-                self._send_batch()
+                self._send_batch_with_retry()
                 
         except Exception as e:
             # Log the error but don't fail the pipeline
@@ -43,30 +46,47 @@ class PubSubToBetterStack(beam.DoFn):
     def finish_bundle(self):
         # Send any remaining messages in the batch
         if self.batch:
-            self._send_batch()
+            self._send_batch_with_retry()
 
-    def _send_batch(self):
-        try:
-            # Convert batch to JSON and compress with gzip
-            json_data = json.dumps(self.batch)
-            compressed_data = gzip.compress(json_data.encode('utf-8'))
-            
-            # Send compressed batch to Better Stack
-            response = requests.post(
-                self.ingesting_url,
-                headers=self.headers,
-                data=compressed_data
-            )
-            
-            if response.status_code != 202:
-                raise Exception(f"Failed to send to Better Stack: {response.text}")
+    def _send_batch_with_retry(self):
+        retry_count = 0
+        retry_delay = self.initial_retry_delay
+        
+        while retry_count < self.max_retries:
+            try:
+                # Convert batch to JSON and compress with gzip
+                json_data = json.dumps(self.batch)
+                compressed_data = gzip.compress(json_data.encode('utf-8'))
                 
-            # Clear the batch after successful send
-            self.batch = []
+                # Send compressed batch to Better Stack
+                response = requests.post(
+                    self.ingesting_url,
+                    headers=self.headers,
+                    data=compressed_data
+                )
                 
-        except Exception as e:
-            # Log the error but don't fail the pipeline
-            print(f"Error sending batch to Better Stack: {str(e)}")
+                if response.status_code == 202:
+                    # Success - clear the batch and return
+                    self.batch = []
+                    return
+                elif response.status_code == 429:  # Rate limit
+                    retry_after = int(response.headers.get('Retry-After', retry_delay))
+                    print(f"Rate limited. Retrying after {retry_after} seconds...")
+                    time.sleep(retry_after)
+                    retry_count += 1
+                    continue
+                else:
+                    raise Exception(f"Failed to send to Better Stack: {response.text}")
+                    
+            except Exception as e:
+                retry_count += 1
+                if retry_count < self.max_retries:
+                    print(f"Attempt {retry_count} failed: {str(e)}. Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    print(f"All retry attempts failed. Last error: {str(e)}")
+                    return
 
 def run(argv=None):
     parser = argparse.ArgumentParser()
@@ -96,6 +116,18 @@ def run(argv=None):
         default=10,
         type=int,
         help='Window size in seconds for batching messages'
+    )
+    parser.add_argument(
+        '--max_retries',
+        default=3,
+        type=int,
+        help='Maximum number of retry attempts for failed requests'
+    )
+    parser.add_argument(
+        '--initial_retry_delay',
+        default=1,
+        type=int,
+        help='Initial delay between retries in seconds'
     )
     known_args, pipeline_args = parser.parse_known_args(argv)
 

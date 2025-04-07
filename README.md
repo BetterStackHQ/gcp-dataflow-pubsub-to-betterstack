@@ -62,6 +62,8 @@ The template supports the following optional parameters:
 
 - `batch_size`: Number of messages to batch before sending to Better Stack. Default: 100
 - `window_size`: Window size in seconds for batching messages. Default: 10
+- `max_retries`: Maximum number of retry attempts for failed requests. Default: 3
+- `initial_retry_delay`: Initial delay between retries in seconds. Default: 1
 
 You can include these parameters in your Dataflow job by adding them to the run command, e.g. `gcloud dataflow flex-template run ... --parameters window_size=30`.
 
