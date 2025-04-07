@@ -20,6 +20,20 @@
       "label": "Better Stack Ingesting Host",
       "helpText": "The ingesting host of your telemetry source in Better Stack",
       "isOptional": false
+    },
+    {
+      "name": "batch_size",
+      "label": "Batch Size",
+      "helpText": "Number of messages to batch before sending to Better Stack",
+      "isOptional": true,
+      "defaultValue": "100"
+    },
+    {
+      "name": "window_size",
+      "label": "Window Size",
+      "helpText": "Window size in seconds for batching messages",
+      "isOptional": true,
+      "defaultValue": "10"
     }
   ]
 }
