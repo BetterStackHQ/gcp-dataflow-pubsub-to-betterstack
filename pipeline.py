@@ -7,9 +7,9 @@ import requests
 from typing import Dict, Any
 
 class PubSubToBetterStack(beam.DoFn):
-    def __init__(self, source_token: str, ingest_host: str):
+    def __init__(self, source_token: str, ingesting_host: str):
         self.source_token = source_token
-        self.ingest_host = ingest_host
+        self.ingesting_url = ingesting_host if '://' in ingesting_host else f'https://{ingesting_host}'
         self.headers = {
             'Authorization': f'Bearer {source_token}',
             'Content-Type': 'application/json'
@@ -17,14 +17,18 @@ class PubSubToBetterStack(beam.DoFn):
 
     def process(self, element: bytes) -> None:
         try:
-            # Parse the PubSub message
-            message = json.loads(element.decode('utf-8'))
-            
+            # Parse the Pub/Sub data
+            data = json.loads(element.decode('utf-8'))
+
+            # Rename timestamp key to dt to be understood by Better Stack
+            if 'timestamp' in data:
+                data['dt'] = data.pop('timestamp')
+
             # Send to Better Stack
             response = requests.post(
-                self.ingest_host,
+                self.ingesting_url,
                 headers=self.headers,
-                json=message
+                json=data
             )
             
             if response.status_code != 202:
@@ -39,17 +43,17 @@ def run(argv=None):
     parser.add_argument(
         '--input_subscription',
         required=True,
-        help='Input PubSub subscription to read from'
+        help='The name of the Pub/Sub subscription to read from'
     )
     parser.add_argument(
         '--better_stack_source_token',
         required=True,
-        help='Better Stack Telemetry source token'
+        help='The source token of your telemetry source in Better Stack'
     )
     parser.add_argument(
         '--better_stack_ingesting_host',
         required=True,
-        help='Better Stack Telemetry source ingesting host'
+        help='The ingesting host of your telemetry source in Better Stack'
     )
     known_args, pipeline_args = parser.parse_known_args(argv)
 
@@ -61,7 +65,7 @@ def run(argv=None):
     with beam.Pipeline(options=pipeline_options) as p:
         (
             p
-            | 'Read from PubSub' >> beam.io.ReadFromPubSub(
+            | 'Read from Pub/Sub' >> beam.io.ReadFromPubSub(
                 subscription=known_args.input_subscription
             )
             | 'Send to Better Stack' >> beam.ParDo(

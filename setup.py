@@ -8,4 +8,4 @@ setuptools.setup(
         'requests>=2.31.0',
     ],
     packages=setuptools.find_packages(),
-) 
+)
