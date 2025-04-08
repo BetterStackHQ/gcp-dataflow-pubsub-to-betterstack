@@ -6,19 +6,22 @@
       "name": "input_subscription",
       "label": "Input Pub/Sub Subscription",
       "helpText": "The name of the Pub/Sub subscription to read from.",
-      "isOptional": false
+      "isOptional": false,
+      "regexes": ["^projects/[^/]+/subscriptions/[^/]+$"]
     },
     {
       "name": "better_stack_source_token",
       "label": "Better Stack Source Token",
       "helpText": "The source token of your telemetry source in Better Stack.",
-      "isOptional": false
+      "isOptional": false,
+      "regexes": ["^[a-zA-Z0-9]{24,}$"]
     },
     {
       "name": "better_stack_ingesting_host",
       "label": "Better Stack Ingesting Host",
       "helpText": "The ingesting host of your telemetry source in Better Stack.",
-      "isOptional": false
+      "isOptional": false,
+      "regexes": ["^([a-z-A-Z][a-z-A-Z0-9]*\\.)+[a-z-A-Z]+$"]
     },
     {
       "name": "batch_size",
