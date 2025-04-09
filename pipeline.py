@@ -32,6 +32,20 @@ class PubSubToBetterStack(beam.DoFn):
             # Rename timestamp key to dt to be understood by Better Stack
             if 'timestamp' in data:
                 data['dt'] = data.pop('timestamp')
+
+            # Parse logName into project and log type if present
+            if 'logName' in data:
+                try:
+                    # Example logName: projects/excited-meercat-123456-a1/logs/dataflow.googleapis.com%2Fvm-monitor
+                    # logProject: excited-meercat-123456-a1
+                    # logType: dataflow.googleapis.com/vm-monitor
+                    project_part, log_type = data['logName'].split('/logs/')
+                    data['logProject'] = project_part.split('/')[-1]
+                    data['logType'] = requests.utils.unquote(log_type)
+                except ValueError as e:
+                    # If splitting fails, keep original logName but don't add parsed fields
+                    print(f"Could not parse project and log type out of logName '{data['logName']}': {str(e)}")
+                    pass
             
             self.batch.append(data)
             
