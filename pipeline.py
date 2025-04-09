@@ -29,11 +29,28 @@ class PubSubToBetterStack(beam.DoFn):
             # Parse the Pub/Sub data
             data = json.loads(element.decode('utf-8'))
             
-            # Rename timestamp key to dt to be understood by Better Stack
-            if 'timestamp' in data:
-                data['dt'] = data.pop('timestamp')
+            # Process data for readability
+            parsed_data = {}
+            for key in data:
+                if key == 'timestamp':
+                    # Rename timestamp key to dt to be understood by Better Stack
+                    parsed_data['dt'] = data['timestamp']
+                elif key == 'logName':
+                    # Parse project and log type out of logName
+                    # Example logName: projects/excited-meercat-123456-a1/logs/dataflow.googleapis.com%2Fvm-monitor
+                    # logProject: excited-meercat-123456-a1
+                    # logType: dataflow.googleapis.com/vm-monitor
+                    parsed_data['logName'] = data['logName']
+                    try:
+                        log_project, log_type = data['logName'].split('/logs/')
+                        parsed_data['logProject'] = log_project.split('/')[-1]
+                        parsed_data['logType'] = requests.utils.unquote(log_type)
+                    except ValueError as e:
+                        print(f"Could not parse log_pro and log type out of logName '{data['logName']}': {str(e)}")
+                else:
+                    parsed_data[key] = data[key]
             
-            self.batch.append(data)
+            self.batch.append(parsed_data)
             
             # If we've reached the batch size, send the batch
             if len(self.batch) >= self.batch_size:
