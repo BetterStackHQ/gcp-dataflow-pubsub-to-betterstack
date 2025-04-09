@@ -24,6 +24,7 @@ gcloud dataflow flex-template build gs://betterstack/pubsub-to-betterstack.json 
     --image "docker.io/betterstack/gcp-dataflow-pubsub-to-betterstack" \
     --sdk-language "PYTHON" \
     --metadata-file "metadata.json"
+gsutil iam ch allUsers:roles/storage.legacyObjectReader gs://betterstack/pubsub-to-betterstack.json
 ```
 
 Requires access to `betterstack` Docker Hub repository, and `betterstack` Google Cloud Bucket.
