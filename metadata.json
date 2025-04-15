@@ -21,7 +21,7 @@
       "label": "Better Stack Ingesting Host",
       "helpText": "The ingesting host of your telemetry source in Better Stack.",
       "isOptional": false,
-      "regexes": ["^([a-zA-Z][a-zA-Z0-9]*\\.)+[a-zA-Z]+$"]
+      "regexes": ["^([a-zA-Z][a-zA-Z0-9-]*\\.)+[a-zA-Z]+$"]
     },
     {
       "name": "batch_size",
